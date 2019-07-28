@@ -11,13 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Instalar Librerias
 ```{r, cache = TRUE}
-install.packages("dplyr")
-install.packages("RMySQL")
-install.packages("lubridate")
-install.packages("openxlsx")
-install.packages("tidyverse")
-install.packages("stringr")
-install.packages("readr")
+#install.packages("dplyr")
+#install.packages("RMySQL")
+#install.packages("lubridate")
+#install.packages("openxlsx")
+#install.packages("tidyverse")
+#install.packages("stringr")
+#install.packages("readr")
 ```
 
 # Cargando Librerias
@@ -54,7 +54,7 @@ factor_2
 ```
 # Vectores
 ```{r}
-sample(x)
+#sample(x)
 ```
 
 
