@@ -1,0 +1,61 @@
+---
+title: "Intro"
+author: "Victor Farfan"
+date: "7/24/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Instalar Librerias
+```{r, cache = TRUE}
+install.packages("dplyr")
+install.packages("RMySQL")
+install.packages("lubridate")
+install.packages("openxlsx")
+install.packages("tidyverse")
+install.packages("stringr")
+install.packages("readr")
+```
+
+# Cargando Librerias
+```{r}
+require(dplyr)
+```
+
+# Tipos de dato
+```{r}
+string <- "This is a string"
+string
+class(string)
+nchar(string)
+length(string)
+```
+```{r}
+number <- 234L
+class(number)
+typeof(number)
+```
+```{r}
+logical = FALSE
+
+```
+```{r}
+factor_1 <- c("mon","tue","wed","thu","fri","sat","sun","sat","sun","wed","thu","fri","sat","sun","wed","thu","wed","thu")
+factor_1 <- factor(factor_1)
+factor_1
+as.numeric
+
+factor_2 <- c("mon","tue","wed","thu","fri","sat","sun","sat","sun","wed","thu","fri","sat","sun","wed","thu","wed","thu")
+factor_2 <- ordered(factor_2, levels = c("mon","tue","wed","thu","fri","sat","sun"))
+factor_2
+```
+# Vectores
+```{r}
+sample(x)
+```
+
+
+
