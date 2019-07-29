@@ -2,7 +2,7 @@
 title: "Intro"
 author: "Victor Farfan"
 date: "7/24/2019"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
