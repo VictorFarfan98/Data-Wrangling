@@ -1,0 +1,32 @@
+---
+title: "Funciones en R"
+author: "Victor Farfan"
+date: "7/29/2019"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Funciones
+```{r, cache=TRUE, echo=TRUE}
+find_sample <- function(x){
+  for_index <- sample(1:nrow(x), size=10, replace = FALSE)
+  new_df <- x[for_index,]
+  return(new_df)
+}
+
+data <- data.frame(
+  a = 1:10,
+  b = sample(c("GT", "US", "CA"), size = 10, replace = TRUE)
+)
+find_sample(data)
+```
+
+```{r, cache=TRUE}
+  generate_df 
+```
+
+

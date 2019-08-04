@@ -43,3 +43,14 @@ quijote_words_clean <- anti_join(quijote_words,spanish_stopwords)
 
 quijote_clean_count <- count(quijote_words_clean, words, sort = TRUE)
 quijote_clean_count
+
+
+#------------- para cargar exceles ----------------#
+library(readxl)
+library(openxlsx)
+
+bancos_activos <- read_excel("data/bancos.xlsx")
+head(bancos_activos)
+
+bancos_activos_2 <- readWorkbook("data/bancos.xlsx", sheet=2)
+head(bancos_activos_2)

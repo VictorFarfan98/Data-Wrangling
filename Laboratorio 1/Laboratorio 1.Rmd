@@ -1,0 +1,51 @@
+---
+title: "Laboratorio 1"
+author: "Victor Farfan"
+date: "7/31/2019"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cache=TRUE}
+library(readxl)
+library(openxlsx)
+library(dplyr)
+library(xlsx)
+
+addDate <- function(x){
+  df <- read_excel(x)
+  df <- df[,c("COD_VIAJE","CLIENTE","UBICACION","CANTIDAD","PILOTO","Q","CREDITO","UNIDAD")]
+  df$FECHA <- substring(x, 1, 7)
+  return(df)
+}
+
+listado <- list.files(pattern = "*.xlsx")
+dfs <- lapply(listado, "addDate")
+all <- do.call("rbind",dfs)
+all
+write.xlsx(all, "compilado.xlsx")
+```
+```{r cache=TRUE}
+library(modes)
+moda=function(x) {
+    q=table(x)
+    q=sort(q,TRUE)
+    return(q[1])
+}
+
+
+modas <- lapply(all, moda)
+modas
+```
+```{r cache=TRUE}
+library(readr)
+
+dataset = read_delim(file = "INE_PARQUE_VEHICULAR_080219.txt", delim = "|", col_names = TRUE, na = "n/a")
+dataset
+```
+
