@@ -1,0 +1,84 @@
+---
+title: "SQL Crash Course"
+author: "Victor Farfan"
+date: "8/7/2019"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r cache=TRUE}
+require(RMySQL)
+connection_name <- "datawrangling.co4pgsadnasr.us-east-2.rds.amazonaws.com"
+db_name <- "dataWrangling"
+user <- "dstrack"
+password <- "datawrangling2019"
+drv = dbDriver("MySQL")
+mydb = dbConnect(drv,host=connection_name,dbname=db_name,user=user,pass=password)
+```
+#Ejercicio 1
+```{r}
+hero <- dbGetQuery(mydb, "SELECT name, Publisher FROM heroes_information")
+head(hero)
+```
+#Ejercicio 2
+```{r}
+hero <- dbGetQuery(mydb, "SELECT DISTINCT(Publisher) FROM heroes_information")
+head(hero)
+```
+#Ejercicio 3
+```{r}
+hero <- dbGetQuery(mydb, "SELECT COUNT(DISTINCT(Publisher)) FROM heroes_information")
+head(hero)
+```
+#Ejercicio 4
+```{r}
+hero <- dbGetQuery(mydb, "SELECT * FROM heroes_information where height>200")
+head(hero)
+```
+#Ejercicio 5
+```{r}
+hero <- dbGetQuery(mydb, "SELECT * FROM heroes_information where Race='Human'")
+head(hero)
+```
+#Ejercicio 6
+```{r}
+hero <- dbGetQuery(mydb, "SELECT * FROM heroes_information where Race='Human' and Height>200;")
+head(hero)
+```
+#Ejercicio 7
+```{r}
+hero <- dbGetQuery(mydb, "SELECT count(*) FROM heroes_information where weight>100 and weight<200;")
+head(hero)
+```
+#Ejercicio 8
+```{r}
+hero <- dbGetQuery(mydb, "SELECT count(*) FROM heroes_information WHERE (`Eye color`='blue') or (`Eye color`='red');")
+head(hero)
+```
+#Ejercicio 9
+
+```{r cache=TRUE}
+hero <- dbGetQuery(mydb, "SELECT count(*) FROM heroes_information WHERE weight BETWEEN 100 and 200;")
+head(hero)
+```
+#Ejercicio 10
+```{r}
+hero <- dbGetQuery(mydb, "SELECT name, weight, height FROM heroes_information where weight>200 and height>100 order by height desc;")
+head(hero)
+
+hero <- dbGetQuery(mydb, "SELECT name, Race FROM heroes_information order by name, race;")
+head(hero)
+```
+#Ejercicio 11
+```{r}
+hero <- dbGetQuery(mydb, "SELECT Publisher, Gender, count(*) FROM heroes_information WHERE Gender='Female' Group by Publisher order by 3 desc;")
+head(hero)
+```
+#Ejercicio 12
+```{r cache=TRUE}
+hero <- dbGetQuery(mydb, "SELECT Publisher, Alignment, Race, count(*) FROM heroes_information where Alignment='Good' Group by Publisher having count(Publisher) > 30;")
+head(hero)
+```
+
