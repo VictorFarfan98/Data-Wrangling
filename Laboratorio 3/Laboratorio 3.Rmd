@@ -1,0 +1,168 @@
+---
+title: "Laboratorio 3"
+author: "Victor Farfan"
+date: "8/14/2019"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r cache=TRUE}
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(igraph)
+library(ggplot2)
+
+transporte <- read_csv("tabla_completa.csv", locale = readr::locale(encoding = "latin1"))
+
+transporte <- transporte %>%
+  separate(CLIENTE, c("CLIENTE", "MOTIVO"), sep ="\\/ |\\|\\|\\|")
+
+transporte$MOTIVO <- tolower(transporte$MOTIVO)
+transporte
+```
+
+## ¿Debemos invertir en la contratación de más personal? 
+#Usamos el promedio de entregas por mes que tienen los empleados para decidir si es necesario contratar más
+```{r}
+#Numero de entregas que hizo cada piloto 
+pilotos <- transporte %>%
+  count(PILOTO)
+pilotos
+
+#promedio mensual de entregas que hizo el piloto con mayor y menor entregas en el año
+max(pilotos$n)/12  
+min(pilotos$n)/12
+
+#Numero de entregas que cada piloto hizo cada mes
+mensuales_piloto <- transporte %>%
+  group_by(MES) %>%
+  count(PILOTO)
+mensuales_piloto
+
+#Promedio mensual de entregas de todos los pilotos
+mensuales = aggregate(mensuales_piloto$n, by=list(MES=mensuales_piloto$MES), FUN=sum)  
+mensuales %>%
+  mutate(AVG = x/9)
+
+
+
+```
+
+## ¿Debemos invertir en la compra de más vehículos de distribución? ¿Cuántos y de que tipo? 
+```{r}
+#Numero de entregas hechas por camion en el año
+uno <- transporte %>%
+  count(UNIDAD)
+
+#Cantidad de producto entregada por camion en el año
+dos <- aggregate(transporte$CANTIDAD, by=list(UNIDAD=transporte$UNIDAD), FUN=sum)
+
+grandes <-transporte %>%
+  filter(UNIDAD == "Camion Grande") 
+peques <-transporte %>%
+  filter(UNIDAD == "Camion Pequeño") 
+panel <-transporte %>%
+  filter(UNIDAD == "Panel") 
+cat("max de camiones grandes:", max(grandes$CANTIDAD), "\n")
+cat("min de camiones grandes:", min(grandes$CANTIDAD), "\n")
+cat("max de camiones pequeños:", max(peques$CANTIDAD), "\n")
+cat("min de camiones pequeños:", min(peques$CANTIDAD), "\n")
+cat("max de paneles:", max(panel$CANTIDAD), "\n")
+cat("min de paneles:", min(panel$CANTIDAD), "\n")
+
+#Promedio de cantidad de producto entregada
+cat("Promedio de cantidad:", mean(transporte$CANTIDAD))
+
+#Promedio de entrega por tipo de unidad en el año
+new <- cbind(uno, cantidad=dos$x)
+new %>%
+  mutate(avg = cantidad/n)
+
+#Numero de entregas por mes de camiones grandes
+transporte %>%
+  filter(UNIDAD == "Camion Grande") %>%
+  group_by(MES) %>% 
+  count(MES)
+#Numero de entregas por mes de camiones pequeños
+transporte %>%
+  filter(UNIDAD == "Camion Pequeño") %>%
+  group_by(MES) %>% 
+  count(MES)
+#Numero de entregas por mes de paneles
+transporte %>%
+  filter(UNIDAD == "Panel") %>%
+  group_by(MES) %>% 
+  count(MES)
+```
+
+## Las tarifas actuales ¿son aceptables por el cliente?
+```{r}
+#Generar una columna extra que da el precio por unidad que se transportó
+transporte %>%
+  mutate(PrecioPorUnidad = CANTIDAD/Q)
+
+#Numero de entregas mensuales
+aggregate(mensuales_piloto$n, by=list(MES=mensuales_piloto$MES), FUN=sum)  
+```
+
+## ¿Nos están robando los pilotos?
+```{r}
+#Elegir solo los faltantes
+faltante <- transporte %>%
+  filter(MOTIVO == "faltante")
+faltante
+
+#porcentaje de faltantes
+count(faltante) / count(transporte)
+
+#Numero de entregas de faltantes por piloto
+faltante %>%
+  group_by(PILOTO) %>%
+  count(PILOTO)
+
+#Numero de entregas de faltantes por piloto y por mes
+faltante %>%
+  group_by(MES) %>%
+  count(PILOTO)
+```
+
+## ¿Qué estrategias debo seguir? 
+
+
+
+## 80-20 de clientes y cuáles de ellos son los más importantes
+```{r}
+
+
+ventas <- aggregate(transporte$Q, by=list(CLIENTE=transporte$CLIENTE), FUN=sum) 
+#ventas <- ventas %>%
+#  mutate(PORCENTAJE = x/sum(x))
+#ventas <- ventas[order(-ventas$x),]
+ventas
+
+
+barplot(ventas$x, names.arg = ventas$CLIENTE, las=2, cex.names = 0.5, space=1, main = "Total compras por cliente en Q")
+
+```
+
+## Mejores pilotos y transportes más efectivos
+```{r}
+#Numero de entregas que cada piloto hizo cada mes
+mensuales_piloto <- transporte %>%
+  filter(is.na(MOTIVO)) %>%
+  count(PILOTO)
+mensuales_piloto
+
+barplot(mensuales_piloto$n, names.arg = mensuales_piloto$PILOTO, las=2, cex.names = 0.75, space=1, main="Entregas exitosas por piloto")
+
+mensuales_piloto <- transporte %>%
+  filter(is.na(MOTIVO)) %>%
+  count(UNIDAD)
+mensuales_piloto
+barplot(mensuales_piloto$n, names.arg = mensuales_piloto$UNIDAD, las=2, cex.names = 0.75, space=1, main="Entregas exitosas por UNIDAD")
+```
+
