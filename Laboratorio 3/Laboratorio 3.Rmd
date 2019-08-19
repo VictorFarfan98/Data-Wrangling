@@ -2,10 +2,11 @@
 title: "Laboratorio 3"
 author: "Victor Farfan"
 date: "8/14/2019"
-output: rmarkdown::github_document
+output:
+  pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -15,6 +16,7 @@ library(readr)
 library(dplyr)
 library(igraph)
 library(ggplot2)
+library(magrittr)
 
 transporte <- read_csv("tabla_completa.csv", locale = readr::locale(encoding = "latin1"))
 
@@ -31,17 +33,17 @@ transporte
 #Numero de entregas que hizo cada piloto 
 pilotos <- transporte %>%
   count(PILOTO)
-pilotos
+#pilotos
 
 #promedio mensual de entregas que hizo el piloto con mayor y menor entregas en el año
-max(pilotos$n)/12  
-min(pilotos$n)/12
+#max(pilotos$n)/12  
+#min(pilotos$n)/12
 
 #Numero de entregas que cada piloto hizo cada mes
 mensuales_piloto <- transporte %>%
   group_by(MES) %>%
   count(PILOTO)
-mensuales_piloto
+#mensuales_piloto
 
 #Promedio mensual de entregas de todos los pilotos
 mensuales = aggregate(mensuales_piloto$n, by=list(MES=mensuales_piloto$MES), FUN=sum)  
@@ -51,6 +53,10 @@ mensuales %>%
 
 
 ```
+Los pilotos tienen alrededor de 20 a 24 entregas al mes. 1 entrega en cada uno de sus días hábiles aproxidamente, por lo que no considero necesario la contratacion de más pilotos
+
+
+
 
 ## ¿Debemos invertir en la compra de más vehículos de distribución? ¿Cuántos y de que tipo? 
 ```{r}
@@ -67,15 +73,15 @@ peques <-transporte %>%
   filter(UNIDAD == "Camion Pequeño") 
 panel <-transporte %>%
   filter(UNIDAD == "Panel") 
-cat("max de camiones grandes:", max(grandes$CANTIDAD), "\n")
-cat("min de camiones grandes:", min(grandes$CANTIDAD), "\n")
-cat("max de camiones pequeños:", max(peques$CANTIDAD), "\n")
-cat("min de camiones pequeños:", min(peques$CANTIDAD), "\n")
-cat("max de paneles:", max(panel$CANTIDAD), "\n")
-cat("min de paneles:", min(panel$CANTIDAD), "\n")
+#cat("max de camiones grandes:", max(grandes$CANTIDAD), "\n")
+#cat("min de camiones grandes:", min(grandes$CANTIDAD), "\n")
+#cat("max de camiones pequeños:", max(peques$CANTIDAD), "\n")
+#cat("min de camiones pequeños:", min(peques$CANTIDAD), "\n")
+#cat("max de paneles:", max(panel$CANTIDAD), "\n")
+#cat("min de paneles:", min(panel$CANTIDAD), "\n")
 
 #Promedio de cantidad de producto entregada
-cat("Promedio de cantidad:", mean(transporte$CANTIDAD))
+#cat("Promedio de cantidad:", mean(transporte$CANTIDAD))
 
 #Promedio de entrega por tipo de unidad en el año
 new <- cbind(uno, cantidad=dos$x)
@@ -98,16 +104,20 @@ transporte %>%
   group_by(MES) %>% 
   count(MES)
 ```
+En la cantidad de entregas mensuales de los camiones pequeños se ve una tendencia a aumentar, por lo que recomendería la compra de camiones pequeños. La cantidad variará de la demanda en el futuro. 
+
 
 ## Las tarifas actuales ¿son aceptables por el cliente?
 ```{r}
 #Generar una columna extra que da el precio por unidad que se transportó
 transporte %>%
-  mutate(PrecioPorUnidad = CANTIDAD/Q)
+  mutate(PrecioPorUnidad = Q/CANTIDAD)
 
 #Numero de entregas mensuales
 aggregate(mensuales_piloto$n, by=list(MES=mensuales_piloto$MES), FUN=sum)  
 ```
+El precio por unidad transportada es de Q0.25 y se puede ver una estabilidad en el numero de pedidos mensuales. Por lo que las tarifas actuales son aceptables por el cliente. 
+
 
 ## ¿Nos están robando los pilotos?
 ```{r}
@@ -129,9 +139,15 @@ faltante %>%
   group_by(MES) %>%
   count(PILOTO)
 ```
+Para intentar saber si los pilotos nos están robando analicé el número de pedidos a causa de faltantes, ya que no es normal que no se envié la cantidad que el cliente pidió desde un inicio. El porcentaje de entregas por faltantes es de 32% y casi todos los pilotos entregan una cantidad parecida de pedidos por faltantes. A mi parecer existe la posibilidad de que nos estén robando pero no de saber quien lo está haciendo. 
+
+
 
 ## ¿Qué estrategias debo seguir? 
-
+#• Llevar un mejor control de las entregas de los pilotos. 
+#• Buscar mantener al menos 1 entrega diaria para cada piloto
+#• Probar aumentar el precio para ver si nuestros clientes aun lo pagan
+#• Comprar más camiones pequeños, la cantidad dependerá de como aumenté el uso de este tipo de camiones
 
 
 ## 80-20 de clientes y cuáles de ellos son los más importantes
@@ -155,14 +171,18 @@ barplot(ventas$x, names.arg = ventas$CLIENTE, las=2, cex.names = 0.5, space=1, m
 mensuales_piloto <- transporte %>%
   filter(is.na(MOTIVO)) %>%
   count(PILOTO)
-mensuales_piloto
+#mensuales_piloto
 
 barplot(mensuales_piloto$n, names.arg = mensuales_piloto$PILOTO, las=2, cex.names = 0.75, space=1, main="Entregas exitosas por piloto")
 
+
+```
+
+```{r}
 mensuales_piloto <- transporte %>%
   filter(is.na(MOTIVO)) %>%
   count(UNIDAD)
-mensuales_piloto
+#mensuales_piloto
 barplot(mensuales_piloto$n, names.arg = mensuales_piloto$UNIDAD, las=2, cex.names = 0.75, space=1, main="Entregas exitosas por UNIDAD")
 ```
 
