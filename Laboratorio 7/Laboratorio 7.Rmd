@@ -1,0 +1,202 @@
+---
+title: "Laboratorio 7"
+author: "Victor Farfan"
+date: "9/22/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cache=TRUE}
+library(tidyr)
+library(dplyr)
+library(stringr)
+library(readxl)
+library(lubridate)
+library(readr)
+data <- data.frame(read_csv("c1.csv"))
+#df <- data.frame(data)
+#data
+#df
+```
+
+```{r}
+#Volver la data tidy
+costo_total <- data %>%
+  select(ID, Camion_5, Pickup, Moto)
+grouped <- gather(costo_total, key="transporte", value="costo_total", Camion_5:Moto)
+grouped <- filter(grouped, costo_total != 'Q-')
+data$transporte <- grouped$transporte
+data$costo_total <- grouped$costo_total 
+
+costo_directo <- data %>%
+  select(ID, directoCamion_5, directoPickup, directoMoto)
+#costo_directo
+grouped <- gather(costo_directo, key="transporte", value="costo_directo", directoCamion_5:directoMoto)
+grouped <- filter(grouped, costo_directo != 'Q-')
+data$costo_directo <- grouped$costo_directo
+
+costo_fijo <- data %>%
+  select(ID, fijoCamion_5, fijoPickup, fijoMoto)
+grouped <- gather(costo_fijo, key="transporte", value="costo_fijo", fijoCamion_5:fijoMoto)
+grouped <- filter(grouped, costo_fijo != 'Q-')
+data$costo_fijo <- grouped$costo_fijo
+
+tiempos <- data %>%
+  select(ID, X5.30, X30.45, X45.75, X75.120, X120.)
+
+tiempos$X5.30[tiempos$X5.30=="x"] <- 1
+tiempos$X30.45[tiempos$X30.45=="x"] <- 1
+tiempos$X45.75[tiempos$X45.75=="x"] <- 1
+tiempos$X75.120[tiempos$X75.120=="x"] <- 1
+tiempos$X120.[tiempos$X120.=="x"] <- 1
+
+grouped <- gather(tiempos, key="rangos", value="tiempo", X5.30:X120.)
+grouped <- filter(grouped, tiempo == '1')
+data$tiempo <- grouped$rangos
+
+a <- dmy(data$Fecha)
+b <- as.Date(as.integer(data$Fecha), origin = "1900-01-01") - days(2)
+a[is.na(a)] <- b[!is.na(b)] # Combine both while keeping their ranks
+data$Fecha <- a # Put it back in your dataframe
+
+
+data$factura <- as.numeric(gsub("Q", "", data$factura))
+data$costo_total <- as.numeric(gsub("Q", "", data$costo_total))
+data$costo_directo <- as.numeric(gsub("Q", "", data$costo_directo))
+data$costo_fijo <- as.numeric(gsub("Q", "", data$costo_fijo))
+
+
+#Eliminar columnas sin uso
+data$Camion_5 <- NULL
+data$Pickup <- NULL
+data$Moto <- NULL
+data$directoCamion_5 <- NULL
+data$directoPickup <- NULL
+data$directoMoto <- NULL
+data$fijoCamion_5 <- NULL
+data$fijoPickup <- NULL
+data$fijoMoto <- NULL
+data$X5.30 <- NULL
+data$X30.45 <- NULL
+data$X45.75 <- NULL
+data$X75.120 <- NULL
+data$X120. <- NULL
+data$X23 <- NULL 
+data
+
+
+
+```
+
+## Cosas que asumo
+  * La latitud y longitud son las del poste que se va a reparar
+
+
+## Cosas que asumo: Tipos de Servicio
+```{r}
+data %>% 
+  select(Cod) %>%
+  distinct
+```
+## Cosas que asumo: Transportes
+```{r}
+data %>% 
+  select(transporte) %>%
+  distinct
+```
+
+## Cosas que asumo: Puntos de origen
+```{r}
+data %>% 
+  select(origen) %>%
+  distinct
+```
+
+
+## Estado de resultados breve del 2017.
+
+```{r}
+ventas <- sum(data$factura)
+costos <- sum(data$costo_total)
+ganancia <- ventas - costos
+#paste('Q',formatC(sum(data$factura), big.mark=',', small.mark = '.', format = 'f'))
+
+sprintf("Ventas Netas: %.2f", ventas)
+sprintf("Costo Total: %.2f", costos)
+sprintf("Ganancia Neta: %.2f", ganancia)
+
+```
+
+## ¿Cómo quedó el tarifario en el 2017 por unidad?
+```{r}
+#ventas <- data %>% 
+#  select(ID, factura) %>%
+#  group_by(ID) %>% 
+#  summarise(Ventas = sum(factura))
+
+tarifario <- aggregate(x = data$costo_total, by=list(data$transporte), mean)
+colnames(tarifario)<-c('Transporte', 'Tarifa')
+tarifario
+```
+
+
+
+## Las tarifas actuales ¿son aceptables por el cliente? ¿Estamos en números rojos?
+```{r}
+#data %>%
+#  group_by(ID) %>%
+#  count(ID)
+
+mes <- data %>%
+  group_by(mes = month(Fecha)) %>% 
+  count(ID)
+#mes
+
+mes <- mes %>%
+  group_by(mes) %>%
+  summarise(total = sum(n))
+
+barplot(mes$total, names.arg = mes$mes, las=2, main="Reparaciones mensuales")
+  
+  
+```
+* Podemos ver que la cantidad de reparaciones hechas por mes se mantienen constantes durante el año y no hay ningun tipo de estacionalidad, por lo que puedo decir que los clientes aceptan nuestras tarifas.
+
+* Como pudimos ver en el Estado de Resultados no estamos en números rojos porque estamos generando una utilidad neta positiva. 
+
+## ¿Cuándo podríamos perderle a un mantenimiento y/o reparación?
+```{r}
+
+```
+* Cuando un factor externo aumente nuestros costos fijos o variables 
+
+
+## ¿Debemos abrir más centros de distribución?
+```{r}
+dist <- count(data, data$origen)
+colnames(dist)<-c('origen', '# Servicios')
+dist
+```
+
+
+## ¿Qué estrategias debo seguir?
+```{r}
+
+```
+* Pensar en tener nuevos puntos de origen que aligeren la carga de los origenes 150224 y 150277
+
+## “80-20” de factura (puede variar el porcentaje) y cuáles postes requieren de más mantenimiento.
+```{r}
+
+```
+
+
+## Recorridos más efectivos.
+```{r}
+
+```
+
+
