@@ -2,14 +2,17 @@
 title: "Laboratorio 7"
 author: "Victor Farfan"
 date: "9/22/2019"
-output: github_document
+output:
+  slidy_presentation: default
+  beamer_presentation: default
+  ioslides_presentation: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r cache=TRUE}
+```{r cache=TRUE, echo = FALSE}
 library(tidyr)
 library(dplyr)
 library(stringr)
@@ -22,7 +25,7 @@ data <- data.frame(read_csv("c1.csv"))
 #df
 ```
 
-```{r}
+```{r, echo = FALSE}
 #Volver la data tidy
 costo_total <- data %>%
   select(ID, Camion_5, Pickup, Moto)
@@ -93,25 +96,25 @@ head(data)
 
 ```
 
-## Cosas que asumo
+## Informacion General
   * La latitud y longitud son las del poste que se va a reparar
+  * Las columnas con rangos representan el tiempo que tomó llegar al poste 
 
-
-## Cosas que asumo: Tipos de Servicio
-```{r}
+## Informacion General: Tipos de Servicio
+```{r, echo = FALSE}
 data %>% 
   select(Cod) %>%
   distinct
 ```
-## Cosas que asumo: Transportes
-```{r}
+## Informacion General: Transportes
+```{r, echo = FALSE}
 data %>% 
   select(transporte) %>%
   distinct
 ```
 
-## Cosas que asumo: Puntos de origen
-```{r}
+## Informacion General: Puntos de origen
+```{r, echo = FALSE}
 data %>% 
   select(origen) %>%
   distinct
@@ -120,7 +123,7 @@ data %>%
 
 ## Estado de resultados breve del 2017.
 
-```{r cache=TRUE}
+```{r cache=TRUE, echo = FALSE}
 ventas <- sum(data$factura)
 costos <- sum(data$costo_total)
 ganancia <- ventas - costos
@@ -128,18 +131,18 @@ ganancia <- ventas - costos
 
 sprintf("Ventas Netas: %.2f", ventas)
 sprintf("Costo Total: %.2f", costos)
-sprintf("Ganancia Neta: %.2f", ganancia)
+sprintf("Utilidad Bruta: %.2f", ganancia)
 
 ```
 
 ## ¿Cómo quedó el tarifario en el 2017 por unidad?
-```{r}
+```{r, echo = FALSE}
 #ventas <- data %>% 
 #  select(ID, factura) %>%
 #  group_by(ID) %>% 
 #  summarise(Ventas = sum(factura))
 
-tarifario <- aggregate(x = data$costo_total, by=list(data$transporte), mean)
+tarifario <- aggregate(x = data$factura, by=list(data$transporte), mean)
 colnames(tarifario)<-c('Transporte', 'Tarifa')
 tarifario
 ```
@@ -147,7 +150,8 @@ tarifario
 
 
 ## Las tarifas actuales ¿son aceptables por el cliente? ¿Estamos en números rojos?
-```{r}
+  * Como pudimos ver en el Estado de Resultados no estamos en números rojos porque estamos generando una utilidad neta positiva. 
+```{r, echo = FALSE}
 #data %>%
 #  group_by(ID) %>%
 #  count(ID)
@@ -165,53 +169,49 @@ barplot(mes$total, names.arg = mes$mes, las=2, main="Reparaciones mensuales")
   
   
 ```
-* Podemos ver que la cantidad de reparaciones hechas por mes se mantienen constantes durante el año y no hay ningun tipo de estacionalidad, por lo que puedo decir que los clientes aceptan nuestras tarifas.
 
-* Como pudimos ver en el Estado de Resultados no estamos en números rojos porque estamos generando una utilidad neta positiva. 
 
 ## ¿Cuándo podríamos perderle a un mantenimiento y/o reparación?
-```{r}
-data %>% 
+  * Cuando un factor externo aumente nuestros costos fijos o variables 
+  * Cuando el precio de realizar el servicio sea inferior a su costo
+```{r, echo = FALSE}
+perdidas <- data %>% 
   filter(Ganancia < 0) %>%
   group_by(Cod) %>%
   count(Cod, sort = TRUE)
 
+barplot(perdidas$n, names.arg = perdidas$Cod, las=2, main="Servicios con más pérdidas")
 ```
-* Cuando un factor externo aumente nuestros costos fijos o variables 
-* Cuando el trabajo no compensen los costos de ir al poste, como una REVISION por ejemplo
+
 
 
 ## ¿Debemos abrir más centros de distribución?
-```{r}
+```{r, echo = FALSE}
 dist <- count(data, data$origen)
-colnames(dist)<-c('origen', '# Servicios')
-dist
+colnames(dist)<-c('origen', 'Servicios')
+#dist
+dist$Servicios <- (dist$Servicios)/1000
+barplot(dist$Servicios, names.arg = dist$origen, las=2, main="Viajes por sede (miles)")
 ```
 
-
-## ¿Qué estrategias debo seguir?
-```{r}
-
-```
-* Pensar en tener nuevos puntos de origen que aligeren la carga de los origenes 150224 y 150277
 
 ## “80-20” de factura (puede variar el porcentaje) y cuáles postes requieren de más mantenimiento.
-```{r}
+```{r, echo = FALSE}
 postes <- data %>% 
   group_by(ID) %>% 
   summarise(Total = sum(factura))
   
 
 postes <- postes[order(-postes$Total),]
-
+#postes
 postes <- postes %>% 
   mutate(Percent = Total/ventas)
 barplot(postes$Total, names.arg = postes$ID, las=2, main="Paretto de postes")
 ```
 
 ## “80-20” de factura (puede variar el porcentaje) y cuáles postes requieren de más mantenimiento.
-```{r}
-options(scipen = 999)     
+```{r, echo = FALSE}
+#options(scipen = 999)     
 servicio <- data %>%
   group_by(Cod) %>%
   summarise(Total = sum(factura)/1000)
@@ -223,7 +223,7 @@ barplot(servicio$Total, names.arg = servicio$Cod, las=2, main="Paretto de postes
 
 
 ## Recorridos más efectivos.
-```{r}
+```{r, echo = FALSE}
 ef <- data %>%
   mutate(Efectividad = Ganancia/costo_total)
 
@@ -240,6 +240,13 @@ barplot(ef$Efectividad, names.arg = ef$Cod, las=2, main="Efectividad de Reparaci
 
 ## Recorridos más efectivos.
 ```{r}
-barplot(ef$Efectividad, names.arg = ef$tiempo, las=2, main="Efectividad de Reparaciones por duracion", cex.names = 0.7)
+barplot(ef$Efectividad, names.arg = ef$tiempo, las=2, main="Efectividad de Reparaciones por distancia", cex.names = 0.7)
 ```
 
+## ¿Qué estrategias debo seguir?
+```{r, echo = FALSE}
+
+```
+* Pensar en tener nuevos puntos de origen que aligeren la carga de los origenes 150224 y 150277
+* Buscar reducir la cantidad de viajes que generan pérdida 
+* Jugar con la elasticidad de las tarifas
